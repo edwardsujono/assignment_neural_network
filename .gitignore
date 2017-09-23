@@ -1,0 +1,4 @@
+begin_project_1a.py
+ENV/
+.idea/
+*.pyc
