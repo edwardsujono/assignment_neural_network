@@ -2,6 +2,9 @@ import numpy as np
 import theano
 import theano.tensor as T
 
+# by specifying [10] as the hidden_layer_neuron implies using 1 hidden layer with 10 neurons
+# respectively by specifying [100, 100] -> 2 hidden layers each layer 100 neurons
+
 
 class SoftmaxNeuralNetwork:
 
@@ -91,7 +94,7 @@ class SoftmaxNeuralNetwork:
 
         return theano.shared(weight, theano.config.floatX)
 
-    def sgd(self, cost, params, lr=0.01):
+    def sgd(self, cost, params, lr=0.005):
 
         # return list of gradients
         grads = T.grad(cost=cost, wrt=params)
@@ -101,10 +104,22 @@ class SoftmaxNeuralNetwork:
             updates.append([p, p - g * lr])
         return updates
 
-    def start_train(self, epochs=1000):
+    def start_train(self, epochs=1000, batch_size=100):
 
         for i in range(epochs):
-            cost = self.computation(self.train_x, self.train_y)
-            prediction = self.prediction(self.train_x)
-            # print ('pure prediction: %s \n' % prediction)
+
+            for cnt in range(0, len(self.train_x), batch_size):
+
+                end = cnt + batch_size
+
+                if end > len(self.train_x):
+                    end = len(self.train_x)
+
+                train_x_batch = self.train_x[cnt:end]
+                train_y_batch = self.train_y[cnt:end]
+
+                cost = self.computation(train_x_batch, train_y_batch)
+                prediction = self.prediction(self.train_x)
+                # print ('pure prediction: %s \n' % prediction)
+
             print ('cost: %s, predictions: %s \n' % (cost, np.mean(np.argmax(self.train_y, axis=1) == prediction)))
