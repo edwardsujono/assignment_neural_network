@@ -20,7 +20,6 @@ class SoftmaxNeuralNetwork:
         self.train_prediction = []
         self.train_exec_time = []
 
-        self.test_cost = []
         self.test_prediction = []
 
         weights = []
@@ -134,13 +133,14 @@ class SoftmaxNeuralNetwork:
             self.train_prediction.append(prediction)
             self.train_exec_time.append(exec_time)
 
-            if i % 5*batch_size == 0 or i == epochs-1:
+            print_verbose = (i % 5*batch_size == 0 or i == epochs-1) and self.verbose
 
-                if self.verbose:
-                    print ('epoch: %d, train cost: %s, train predictions: %s \n' % (i, cost, prediction))
-                self.start_test(test_x=test_x, test_y=test_y)
-                if self.verbose:
-                    print('------------------------------------\n')
+            self.start_test(test_x=test_x, test_y=test_y, print_verbose=print_verbose)
+
+            if print_verbose:
+
+                print ('epoch: %d, train cost: %s, train predictions: %s \n' % (i, cost, prediction))
+                print('------------------------------------\n')
 
     def start_one_iter_func(self, batch_size, prediction_batch):
 
@@ -163,16 +163,15 @@ class SoftmaxNeuralNetwork:
 
         return cost
 
-    def start_test(self, test_x, test_y):
+    def start_test(self, test_x, test_y, print_verbose):
 
-        cost = self.computation(test_x, test_y)
         prediction = self.prediction(test_x)
 
-        self.test_cost.append(cost)
-        self.test_prediction.append(prediction)
+        predict_in_percentage = np.mean(np.argmax(test_y, axis=1) == prediction)
+        self.test_prediction.append(predict_in_percentage)
 
-        if self.verbose:
-            print ('test cost: %s, test predictions: %s \n' % (cost, np.mean(np.argmax(test_y, axis=1) == prediction)))
+        if print_verbose:
+            print ('test predictions: %s \n' % predict_in_percentage)
 
     def get_train_result(self):
 
@@ -180,4 +179,4 @@ class SoftmaxNeuralNetwork:
 
     def get_test_result(self):
 
-        return self.test_cost, self.test_prediction
+        return self.test_prediction

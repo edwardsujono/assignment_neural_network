@@ -16,7 +16,7 @@ if __name__ == "__main__":
     softmax_nn.start_train(batch_size=number_data, test_x=test_x, test_y=test_y, epochs=number_epoch)
 
     cost_train, prediction_train, exec_time = softmax_nn.get_train_result()
-    cost_test, prediction_test = softmax_nn.get_test_result()
+    prediction_test = softmax_nn.get_test_result()
 
     print ("Execution Time: %s \n" % exec_time)
 
