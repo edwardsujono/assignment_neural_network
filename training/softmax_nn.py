@@ -1,6 +1,7 @@
 import numpy as np
 import theano
 import theano.tensor as T
+from common.time_executor import get_execution_time
 
 # by specifying [10] as the hidden_layer_neuron implies using 1 hidden layer with 10 neurons
 # respectively by specifying [100, 100] -> 2 hidden layers each layer 100 neurons
@@ -12,6 +13,13 @@ class SoftmaxNeuralNetwork:
 
         self.train_x = train_x
         self.train_y = train_y
+
+        self.train_cost = []
+        self.train_prediction = []
+        self.train_exec_time = []
+
+        self.test_cost = []
+        self.test_prediction = []
 
         weights = []
         biases = []
@@ -61,7 +69,12 @@ class SoftmaxNeuralNetwork:
 
         y_prediction = T.argmax(calculation, axis=1)
 
-        cost = T.mean(T.nnet.categorical_crossentropy(calculation, y_output))
+        sum_sqr_weights = T.sqr(weights[0])
+
+        for i in range(1, len(weights)):
+            sum_sqr_weights += T.sum(T.sqr(weights[i]))
+
+        cost = T.mean(T.nnet.categorical_crossentropy(calculation, y_output)) + decay*T.sum(sum_sqr_weights)
         params = list(weights+biases)
         updates = self.sgd(cost=cost, params=params)
 
@@ -94,7 +107,7 @@ class SoftmaxNeuralNetwork:
 
         return theano.shared(weight, theano.config.floatX)
 
-    def sgd(self, cost, params, lr=0.005):
+    def sgd(self, cost, params, lr=0.01):
 
         # return list of gradients
         grads = T.grad(cost=cost, wrt=params)
@@ -104,22 +117,62 @@ class SoftmaxNeuralNetwork:
             updates.append([p, p - g * lr])
         return updates
 
-    def start_train(self, epochs=1000, batch_size=100):
+    def start_train(self, test_x, test_y, epochs=1000, batch_size=100):
 
         for i in range(epochs):
 
-            for cnt in range(0, len(self.train_x), batch_size):
+            prediction_batch = []
 
-                end = cnt + batch_size
+            cost, exec_time = get_execution_time(self.start_one_iter_func(batch_size, prediction_batch))
 
-                if end > len(self.train_x):
-                    end = len(self.train_x)
+            # predictions of train data
+            prediction = np.mean(prediction_batch)
 
-                train_x_batch = self.train_x[cnt:end]
-                train_y_batch = self.train_y[cnt:end]
+            self.train_cost.append(cost)
+            self.train_prediction.append(prediction)
+            self.train_exec_time.append(exec_time)
 
-                cost = self.computation(train_x_batch, train_y_batch)
-                prediction = self.prediction(self.train_x)
-                # print ('pure prediction: %s \n' % prediction)
+            if i % 5*batch_size == 0 or i == epochs-1:
 
-            print ('cost: %s, predictions: %s \n' % (cost, np.mean(np.argmax(self.train_y, axis=1) == prediction)))
+                print ('epoch: %d, train cost: %s, train predictions: %s \n' % (i, cost, prediction))
+                self.start_test(test_x=test_x, test_y=test_y)
+                print('------------------------------------\n')
+
+    def start_one_iter_func(self, batch_size, prediction_batch):
+
+        cost = 0
+
+        for cnt in range(0, len(self.train_x), batch_size):
+
+            end = cnt + batch_size
+
+            if end > len(self.train_x):
+                end = len(self.train_x)
+
+            train_x_batch = self.train_x[cnt:end]
+            train_y_batch = self.train_y[cnt:end]
+
+            cost += self.computation(train_x_batch, train_y_batch)
+            prediction = self.prediction(self.train_x)
+            predict_in_percentage = np.mean(np.argmax(self.train_y, axis=1) == prediction)
+            prediction_batch.append(predict_in_percentage)
+
+        return cost
+
+    def start_test(self, test_x, test_y):
+
+        cost = self.computation(test_x, test_y)
+        prediction = self.prediction(test_x)
+
+        self.test_cost.append(cost)
+        self.test_prediction.append(prediction)
+
+        print ('test cost: %s, test predictions: %s \n' % (cost, np.mean(np.argmax(test_y, axis=1) == prediction)))
+
+    def get_train_result(self):
+
+        return self.train_cost, self.train_prediction, np.sum(self.train_exec_time)
+
+    def get_test_result(self):
+
+        return self.test_cost, self.test_prediction
