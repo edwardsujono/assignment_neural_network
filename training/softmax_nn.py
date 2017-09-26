@@ -9,10 +9,12 @@ from common.time_executor import get_execution_time
 
 class SoftmaxNeuralNetwork:
 
-    def __init__(self, train_x, train_y, num_features=6, list_of_neuron_on_hidden_layer=list([10]), decay=1e-6):
+    def __init__(self, train_x, train_y, num_features=6, list_of_neuron_on_hidden_layer=list([10]), decay=1e-6,
+                 verbose=True):
 
         self.train_x = train_x
         self.train_y = train_y
+        self.verbose = verbose
 
         self.train_cost = []
         self.train_prediction = []
@@ -123,7 +125,7 @@ class SoftmaxNeuralNetwork:
 
             prediction_batch = []
 
-            cost, exec_time = get_execution_time(self.start_one_iter_func(batch_size, prediction_batch))
+            cost, exec_time = get_execution_time(self.start_one_iter_func, batch_size, prediction_batch)
 
             # predictions of train data
             prediction = np.mean(prediction_batch)
@@ -134,9 +136,11 @@ class SoftmaxNeuralNetwork:
 
             if i % 5*batch_size == 0 or i == epochs-1:
 
-                print ('epoch: %d, train cost: %s, train predictions: %s \n' % (i, cost, prediction))
+                if self.verbose:
+                    print ('epoch: %d, train cost: %s, train predictions: %s \n' % (i, cost, prediction))
                 self.start_test(test_x=test_x, test_y=test_y)
-                print('------------------------------------\n')
+                if self.verbose:
+                    print('------------------------------------\n')
 
     def start_one_iter_func(self, batch_size, prediction_batch):
 
@@ -167,7 +171,8 @@ class SoftmaxNeuralNetwork:
         self.test_cost.append(cost)
         self.test_prediction.append(prediction)
 
-        print ('test cost: %s, test predictions: %s \n' % (cost, np.mean(np.argmax(test_y, axis=1) == prediction)))
+        if self.verbose:
+            print ('test cost: %s, test predictions: %s \n' % (cost, np.mean(np.argmax(test_y, axis=1) == prediction)))
 
     def get_train_result(self):
 

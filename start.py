@@ -10,7 +10,6 @@ if __name__ == "__main__":
 
     # number_data = train_x.shape[0]
     number_data = 1000
-
     number_epoch = 100
 
     softmax_nn = SoftmaxNeuralNetwork(train_x=train_x.as_matrix(), train_y=train_y, list_of_neuron_on_hidden_layer=[10])
@@ -21,7 +20,7 @@ if __name__ == "__main__":
 
     print ("Execution Time: %s \n" % exec_time)
 
-    # visualize
+    # example of the visualize
     data_visualization = DataVisualization()
     data_visualization.show_plot(
         list_x_point=range(number_epoch), list_y_point=cost_train,
