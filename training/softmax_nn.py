@@ -16,6 +16,8 @@ class SoftmaxNeuralNetwork:
         self.train_y = train_y
         self.verbose = verbose
 
+        self.num_train_data = len(train_x)
+
         self.train_cost = []
         self.train_prediction = []
         self.train_exec_time = []
@@ -118,9 +120,17 @@ class SoftmaxNeuralNetwork:
             updates.append([p, p - g * lr])
         return updates
 
+    def reshuffle_train_data(self):
+
+        id_to_random = np.arange(self.num_train_data)
+        np.random.shuffle(id_to_random)
+        return self.train_x[id_to_random], self.train_y[id_to_random]
+
     def start_train(self, test_x, test_y, epochs=1000, batch_size=100):
 
         for i in range(epochs):
+
+            self.reshuffle_train_data()
 
             prediction_batch = []
 
