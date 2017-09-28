@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     # number_data = train_x.shape[0]
     number_data = 32
-    number_epoch = 1000
+    number_epoch = 100
 
     softmax_nn = SoftmaxNeuralNetwork(train_x=train_x.as_matrix(), train_y=train_y, list_of_neuron_on_hidden_layer=[10])
     softmax_nn.start_train(batch_size=number_data, test_x=test_x, test_y=test_y, epochs=number_epoch)
