@@ -139,7 +139,8 @@ class SoftmaxNeuralNetwork:
 
             if print_verbose:
 
-                print ('epoch: %d, train cost: %s, train predictions: %s \n' % (i, cost, prediction))
+                print ('execution_time: %s epoch: %d, train cost: %s, train predictions: %s \n' %
+                       (np.sum(self.train_exec_time), i, cost, prediction))
                 print('------------------------------------\n')
 
     def start_one_iter_func(self, batch_size, prediction_batch):
